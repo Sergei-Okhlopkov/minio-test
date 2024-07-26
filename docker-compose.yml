@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${SECRET_KEY}
+    volumes:
+      - minio-data:/data
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+volumes:
+  minio-data:
+# services:
+#   postgres:
+#     image: postgres:16
+#     container_name: db_container
+#     ports:
+#       - "5432:5432"
+#     environment:
+#       POSTGRES_DB: ${POSTGRES_DB}
+#       POSTGRES_USER: ${POSTGRES_USER}
+#       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#       PGDATA: ${PGDATA}
+#     user: '$UID:$GID'
+#     networks:
+#       - app-network
+#     restart: unless-stopped
+#     volumes:
+#       - postgres_vol:/var/lib/postgresql/data
+
+#   pgadmin:
+#     container_name: pgadmin_ms_container
+#     image: dpage/pgadmin4:8.8
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+#       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+#       PGADMIN_CONFIG_SERVER_MODE: ${PGADMIN_CONFIG_SERVER_MODE}
+#       PGADMIN_LISTEN_PORT: ${PGADMIN_LISTEN_PORT}
+#       PGADMIN_LISTEN_ADDRESS: ${PGADMIN_LISTEN_ADDRESS}
+#     user: '$UID:$GID'
+#     volumes:
+#       - pgadmin_vol:/var/lib/pgadmin
+#     ports:
+#       - "8001:8001"
+#     restart: unless-stopped
+#     networks:
+#       - app-network
+#     depends_on:
+#       - postgres
+#     env_file:
+#       - .env
+
+# networks:
+#   app-network:
+
+# volumes:
+#   postgres_vol:
+#   pgadmin_vol:
