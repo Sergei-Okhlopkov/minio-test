@@ -1,46 +1,40 @@
-import asyncio
-from contextlib import asynccontextmanager
 import os
-from aiobotocore.session import get_session
-from pathlib import PurePath
+from minio import Minio
+
+bucket = "docbucket"
+object_name = "shjdfhasjdfhaskjdfh2342lkjlk34_"
+file_name = "Test.docx"
+
+# Создаем клиент Minio
+client = Minio(
+    endpoint=os.getenv("ENDPOINT_URL"),
+    access_key=os.getenv("ACCESS_KEY"),
+    secret_key=os.getenv("SECRET_KEY"),
+    secure=False,  # Если используется HTTPS, установите значение True
+)
 
 
-class S3Client:
-    def __init__(
-        self, access_key: str, secret_key: str, endpoint_url: str, bucket_name: str
-    ):
-        self.config = {
-            "aws_access_key_id": access_key,
-            "aws_secrect_key_id": secret_key,
-            "endpoint_url": endpoint_url,
-        }
-        self.bucket_name = bucket_name
-        self.session = get_session()
+# Создаем новый баket, если его еще нет
+try:
+    client.make_bucket(bucket)
+except Exception as err:
+    if "BucketAlreadyOwnedByYou" not in str(err):
+        raise
 
-    @asynccontextmanager
-    async def get_client(self):
-        async with self.session.create_client("s3", self.config) as client:
-            yield client
+# Загрузка файла в Minio
+try:
+    client.fput_object(bucket, object_name, file_name)
+except Exception as err:
+    print(err)
 
-    async def upload_file(self, file_path: str):
-        async with self.get_client() as client:
-            with open(file_path, "rb") as file:
-                object_name = PurePath(file_path).parts[-1]
-                await client.put_object(
-                    Bucket=self.bucket_name, Key=object_name, Body=file
-                )
+# Получение объекта из Minio
+try:
+    client.fget_object(bucket, object_name, ".\download\Test2.docx")
+except Exception as err:
+    print(err)
 
-
-async def main():
-    s3_client = S3Client(
-        access_key=os.getenv("ACCESS_KEY"),
-        secret_key=os.getenv("SECRET_KEY"),
-        endpoint_url=os.getenv("ENDPOINT_URL"),
-        bucket_name="docs",
-    )
-
-    await s3_client.upload_file("Test.docx")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+# Удаление объекта из Minio
+try:
+    client.remove_object(bucket, object_name)
+except Exception as err:
+    print(err)
