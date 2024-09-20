@@ -1,5 +1,5 @@
 import os
-from minio import Minio
+from miniopy_async import Minio
 
 minio_client = Minio(
     endpoint=os.getenv("ENDPOINT_URL"),
